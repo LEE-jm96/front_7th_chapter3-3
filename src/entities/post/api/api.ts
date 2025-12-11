@@ -75,7 +75,7 @@ export const postApi = {
 
   // 게시물 삭제
   deletePost: async (id: number): Promise<void> => {
-    await fetch(`/api/posts/${id}`, {
+    await fetch(`${API_BASE_URL}/posts/${id}`, {
       method: "DELETE",
     })
   },
