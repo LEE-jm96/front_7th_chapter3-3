@@ -47,7 +47,7 @@ export const useCreateCommentMutation = () => {
 
       return { previousComments, postId: newComment.postId!, tempId }
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, _variables, context) => {
       // 서버 응답 데이터로 캐시 직접 업데이트 (invalidate 대신)
       if (context?.postId && context?.tempId) {
         queryClient.setQueryData(commentKeys.byPost(context.postId), (old: any) => {
@@ -141,7 +141,7 @@ export const useDeleteCommentMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, postId }: { id: number; postId: number }) => commentApi.deleteComment(id),
+    mutationFn: ({ id, postId: _postId }: { id: number; postId: number }) => commentApi.deleteComment(id),
     // 낙관적 업데이트
     onMutate: async ({ id, postId }) => {
       const queryKey = commentKeys.byPost(postId)

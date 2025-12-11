@@ -15,7 +15,7 @@ export const postKeys = {
 }
 
 // 게시물 목록 조회
-export const usePostsQuery = (limit: number, skip: number, sortBy?: string, order?: string) => {
+export const usePostsQuery = (limit: number, skip: number, sortBy?: string, order?: string, enabled: boolean = true) => {
   // "none"이나 빈 문자열은 undefined로 변환
   // reactions는 클라이언트 사이드에서 정렬하므로 API에는 전달하지 않음
   const normalizedSortBy = sortBy && sortBy !== "none" && sortBy !== "reactions" ? sortBy : undefined
@@ -25,6 +25,7 @@ export const usePostsQuery = (limit: number, skip: number, sortBy?: string, orde
   return useQuery({
     queryKey: postKeys.list(limit, skip, sortBy, order), // 쿼리 키에는 원본 값 사용 (캐시 구분)
     queryFn: () => postApi.getPosts(limit, skip, normalizedSortBy, normalizedOrder),
+    enabled,
   })
 }
 
@@ -78,7 +79,7 @@ export const useCreatePostMutation = () => {
       return { previousPosts, tempId }
     },
     // 성공 시 서버 응답으로 교체
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, _variables, context) => {
       if (context?.tempId) {
         // 임시 게시물을 서버 응답으로 교체
         setPosts((prev) => {
@@ -91,7 +92,7 @@ export const useCreatePostMutation = () => {
       }
     },
     // 에러 시 롤백
-    onError: (err, newPost, context) => {
+    onError: (err, _newPost, context) => {
       if (context?.previousPosts) {
         queryClient.setQueryData(postKeys.all, context.previousPosts)
       }
@@ -125,7 +126,7 @@ export const useUpdatePostMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: postKeys.all })
     },
-    onError: (err, variables, context) => {
+    onError: (err, _variables, context) => {
       if (context?.previousPosts) {
         queryClient.setQueryData(postKeys.all, context.previousPosts)
       }
@@ -155,7 +156,7 @@ export const useDeletePostMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: postKeys.all })
     },
-    onError: (err, id, context) => {
+    onError: (err, _id, context) => {
       if (context?.previousPosts) {
         queryClient.setQueryData(postKeys.all, context.previousPosts)
       }

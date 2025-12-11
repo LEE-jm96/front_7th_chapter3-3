@@ -1,4 +1,5 @@
 import { Post, PostsResponse, CreatePostDto, UpdatePostDto } from "../model/types"
+import { API_BASE_URL } from "../../../shared/lib"
 
 export const postApi = {
   // 게시물 목록 가져오기
@@ -20,7 +21,7 @@ export const postApi = {
       params.set("order", order)  // sortOrder → order로 변경
     }
     
-    const response = await fetch(`/api/posts?${params.toString()}`)
+    const response = await fetch(`${API_BASE_URL}/posts?${params.toString()}`)
     return response.json()
   },
 
@@ -33,7 +34,7 @@ export const postApi = {
     if (order) {
       params.set("order", order)
     }
-    const response = await fetch(`/api/posts/search?${params.toString()}`)
+    const response = await fetch(`${API_BASE_URL}/posts/search?${params.toString()}`)
     return response.json()
   },
 
@@ -47,14 +48,14 @@ export const postApi = {
       params.set("order", order)
     }
     const queryString = params.toString()
-    const url = `/api/posts/tag/${tag}${queryString ? `?${queryString}` : ""}`
+    const url = `${API_BASE_URL}/posts/tag/${tag}${queryString ? `?${queryString}` : ""}`
     const response = await fetch(url)
     return response.json()
   },
 
   // 게시물 추가
   createPost: async (data: CreatePostDto): Promise<Post> => {
-    const response = await fetch("/api/posts/add", {
+    const response = await fetch(`${API_BASE_URL}/posts/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -64,7 +65,7 @@ export const postApi = {
 
   // 게시물 수정
   updatePost: async (id: number, data: UpdatePostDto): Promise<Post> => {
-    const response = await fetch(`/api/posts/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

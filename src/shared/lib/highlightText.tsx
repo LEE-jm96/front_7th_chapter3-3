@@ -1,5 +1,3 @@
-import React from "react"
-
 export const highlightText = (text: string, highlight: string) => {
   if (!text) return null
   if (!highlight.trim()) {
