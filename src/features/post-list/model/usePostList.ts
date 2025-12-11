@@ -27,10 +27,10 @@ export const usePostList = () => {
   const isSearchMode = !!searchQuery
   const isTagMode = !!selectedTag && selectedTag !== "all"
 
-  // 조건부 쿼리 실행
+  // 조건부 쿼리 실행 (모든 쿼리에 sortBy와 order 전달)
   const postsQuery = usePostsQuery(limit, skip, sortBy, order)
-  const searchResults = useSearchPostsQuery(searchQuery, isSearchMode)
-  const tagResults = usePostsByTagQuery(selectedTag, isTagMode)
+  const searchResults = useSearchPostsQuery(searchQuery, isSearchMode, sortBy, order)
+  const tagResults = usePostsByTagQuery(selectedTag, isTagMode, sortBy, order)
   const usersQuery = useUsersQuery(0, "username,image")
 
   const deletePostMutation = useDeletePostMutation()
@@ -46,15 +46,29 @@ export const usePostList = () => {
   // 데이터 결합 및 atom 업데이트
   useEffect(() => {
     if (activeQuery.data && usersQuery.data) {
-      const postsWithUsers = activeQuery.data.posts.map((post) => ({
+      let postsWithUsers = activeQuery.data.posts.map((post) => ({
         ...post,
         author: usersQuery.data.users.find((user) => user.id === post.userId),
       }))
 
+      // reactions 정렬은 클라이언트 사이드에서 처리 (API가 지원하지 않을 수 있음)
+      if (sortBy === "reactions" && order) {
+        postsWithUsers = [...postsWithUsers].sort((a, b) => {
+          const aLikes = a.reactions?.likes || 0
+          const bLikes = b.reactions?.likes || 0
+          
+          if (order === "asc") {
+            return aLikes - bLikes
+          } else {
+            return bLikes - aLikes
+          }
+        })
+      }
+
       setPosts(postsWithUsers)
       setTotal(activeQuery.data.total)
     }
-  }, [activeQuery.data, usersQuery.data, setPosts, setTotal])
+  }, [activeQuery.data, usersQuery.data, sortBy, order, setPosts, setTotal])
 
   const deletePost = useCallback(
     async (id: number) => {

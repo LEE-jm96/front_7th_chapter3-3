@@ -25,14 +25,30 @@ export const postApi = {
   },
 
   // 게시물 검색
-  searchPosts: async (query: string): Promise<PostsResponse> => {
-    const response = await fetch(`/api/posts/search?q=${query}`)
+  searchPosts: async (query: string, sortBy?: string, order?: string): Promise<PostsResponse> => {
+    const params = new URLSearchParams({ q: query })
+    if (sortBy && sortBy !== "none") {
+      params.set("sortBy", sortBy)
+    }
+    if (order) {
+      params.set("order", order)
+    }
+    const response = await fetch(`/api/posts/search?${params.toString()}`)
     return response.json()
   },
 
   // 태그별 게시물 가져오기
-  getPostsByTag: async (tag: string): Promise<PostsResponse> => {
-    const response = await fetch(`/api/posts/tag/${tag}`)
+  getPostsByTag: async (tag: string, sortBy?: string, order?: string): Promise<PostsResponse> => {
+    const params = new URLSearchParams()
+    if (sortBy && sortBy !== "none") {
+      params.set("sortBy", sortBy)
+    }
+    if (order) {
+      params.set("order", order)
+    }
+    const queryString = params.toString()
+    const url = `/api/posts/tag/${tag}${queryString ? `?${queryString}` : ""}`
+    const response = await fetch(url)
     return response.json()
   },
 

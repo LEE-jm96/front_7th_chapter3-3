@@ -17,39 +17,39 @@ export const postKeys = {
 // 게시물 목록 조회
 export const usePostsQuery = (limit: number, skip: number, sortBy?: string, order?: string) => {
   // "none"이나 빈 문자열은 undefined로 변환
-  const normalizedSortBy = sortBy && sortBy !== "none" ? sortBy : undefined
-  // sortBy가 있을 때만 order를 적용
-  const normalizedOrder = normalizedSortBy && order ? order : undefined
-  
-  console.log('🔍 usePostsQuery called:', { 
-    original: { limit, skip, sortBy, order },
-    normalized: { normalizedSortBy, normalizedOrder },
-    queryKey: postKeys.list(limit, skip, normalizedSortBy, normalizedOrder)
-  })
+  // reactions는 클라이언트 사이드에서 정렬하므로 API에는 전달하지 않음
+  const normalizedSortBy = sortBy && sortBy !== "none" && sortBy !== "reactions" ? sortBy : undefined
+  // reactions 정렬 시에는 order를 API에 전달하지 않음 (클라이언트에서 처리)
+  const normalizedOrder = normalizedSortBy && order && order !== "" ? order : undefined
   
   return useQuery({
-    queryKey: postKeys.list(limit, skip, normalizedSortBy, normalizedOrder),
-    queryFn: () => {
-      console.log('📡 Fetching posts from API:', { limit, skip, normalizedSortBy, normalizedOrder })
-      return postApi.getPosts(limit, skip, normalizedSortBy, normalizedOrder)
-    },
+    queryKey: postKeys.list(limit, skip, sortBy, order), // 쿼리 키에는 원본 값 사용 (캐시 구분)
+    queryFn: () => postApi.getPosts(limit, skip, normalizedSortBy, normalizedOrder),
   })
 }
 
 // 게시물 검색
-export const useSearchPostsQuery = (query: string, enabled: boolean = true) => {
+export const useSearchPostsQuery = (query: string, enabled: boolean = true, sortBy?: string, order?: string) => {
+  // reactions는 클라이언트 사이드에서 정렬
+  const normalizedSortBy = sortBy && sortBy !== "none" && sortBy !== "reactions" ? sortBy : undefined
+  const normalizedOrder = normalizedSortBy && order && order !== "" ? order : undefined
+  
   return useQuery({
-    queryKey: postKeys.search(query),
-    queryFn: () => postApi.searchPosts(query),
+    queryKey: [...postKeys.search(query), { sortBy, order }], // 쿼리 키에는 원본 값 사용
+    queryFn: () => postApi.searchPosts(query, normalizedSortBy, normalizedOrder),
     enabled: enabled && !!query,
   })
 }
 
 // 태그별 게시물 조회
-export const usePostsByTagQuery = (tag: string, enabled: boolean = true) => {
+export const usePostsByTagQuery = (tag: string, enabled: boolean = true, sortBy?: string, order?: string) => {
+  // reactions는 클라이언트 사이드에서 정렬
+  const normalizedSortBy = sortBy && sortBy !== "none" && sortBy !== "reactions" ? sortBy : undefined
+  const normalizedOrder = normalizedSortBy && order && order !== "" ? order : undefined
+  
   return useQuery({
-    queryKey: postKeys.byTag(tag),
-    queryFn: () => postApi.getPostsByTag(tag),
+    queryKey: [...postKeys.byTag(tag), { sortBy, order }], // 쿼리 키에는 원본 값 사용
+    queryFn: () => postApi.getPostsByTag(tag, normalizedSortBy, normalizedOrder),
     enabled: enabled && !!tag && tag !== "all",
   })
 }
