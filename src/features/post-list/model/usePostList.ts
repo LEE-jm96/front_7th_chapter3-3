@@ -18,7 +18,7 @@ export const usePostList = () => {
   const order = useAtomValue(orderAtom)
   const searchQuery = useAtomValue(searchQueryAtom)
   const selectedTag = useAtomValue(selectedTagAtom)
-
+  
   const setPosts = useSetAtom(postsAtom)
   const setTotal = useSetAtom(totalPostsAtom)
   const setLoading = useSetAtom(loadingAtom)
@@ -28,7 +28,9 @@ export const usePostList = () => {
   const isTagMode = !!selectedTag && selectedTag !== "all"
 
   // 조건부 쿼리 실행 (모든 쿼리에 sortBy와 order 전달)
-  const postsQuery = usePostsQuery(limit, skip, sortBy, order)
+  // TanStack Query의 캐싱으로 중복 호출 방지
+  // enabled를 명시적으로 true로 설정하여 항상 쿼리 실행
+  const postsQuery = usePostsQuery(limit, skip, sortBy, order, true)
   const searchResults = useSearchPostsQuery(searchQuery, isSearchMode, sortBy, order)
   const tagResults = usePostsByTagQuery(selectedTag, isTagMode, sortBy, order)
   const usersQuery = useUsersQuery(0, "username,image")

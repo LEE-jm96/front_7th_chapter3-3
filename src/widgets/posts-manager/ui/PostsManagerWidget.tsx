@@ -27,6 +27,7 @@ export const PostsManagerWidget = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const isInitialMount = useRef(true)
+  const isInitialized = useRef(false)
 
   // Atoms
   const [skip, setSkip] = useAtom(skipAtom)
@@ -47,7 +48,35 @@ export const PostsManagerWidget = () => {
   const [showAddCommentDialog, setShowAddCommentDialog] = useAtom(showAddCommentDialogAtom)
   const [showEditCommentDialog, setShowEditCommentDialog] = useAtom(showEditCommentDialogAtom)
 
-  // TanStack Query hooks
+  // 초기 마운트 시 URL 파라미터를 먼저 읽어서 atom 설정
+  useEffect(() => {
+    if (isInitialized.current) return
+    
+    const params = new URLSearchParams(location.search)
+    const urlSkip = parseInt(params.get("skip") || "0")
+    const urlLimit = parseInt(params.get("limit") || "10")
+    const urlSearch = params.get("search") || ""
+    const urlSortBy = params.get("sortBy") || "none"
+    const urlOrder = params.get("order") || "asc"
+    const urlTag = params.get("tag") || ""
+    
+    // atom 설정 (동기적으로 실행되지만 다음 렌더에서 반영됨)
+    setSkip(urlSkip)
+    setLimit(urlLimit)
+    setSearchQuery(urlSearch)
+    setSortBy(urlSortBy)
+    setOrder(urlOrder)
+    setSelectedTag(urlTag)
+    
+    isInitialized.current = true
+    
+    // 다음 렌더 사이클에서 초기 마운트 완료로 표시
+    setTimeout(() => {
+      isInitialMount.current = false
+    }, 0)
+  }, [])
+
+  // TanStack Query hooks (atom이 초기화된 후에 호출)
   useTags() // 태그 목록 자동 로드 및 atom 동기화
   const { error, deletePost } = usePostList()
   const { addPost } = useAddPost()
@@ -92,29 +121,6 @@ export const PostsManagerWidget = () => {
     // usePostList에서 자동으로 처리됨
   }
 
-  // 초기 로딩: URL 파라미터 읽기
-  useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    
-    // 현재 atom 값과 비교하여 다를 때만 업데이트
-    const urlSkip = parseInt(params.get("skip") || "0")
-    const urlLimit = parseInt(params.get("limit") || "10")
-    const urlSearch = params.get("search") || ""
-    const urlSortBy = params.get("sortBy") || "none"
-    const urlOrder = params.get("order") || "asc"
-    const urlTag = params.get("tag") || ""
-    
-    if (urlSkip !== skip) setSkip(urlSkip)
-    if (urlLimit !== limit) setLimit(urlLimit)
-    if (urlSearch !== searchQuery) setSearchQuery(urlSearch)
-    if (urlSortBy !== sortBy) setSortBy(urlSortBy)
-    if (urlOrder !== order) setOrder(urlOrder)
-    if (urlTag !== selectedTag) setSelectedTag(urlTag)
-
-    setTimeout(() => {
-      isInitialMount.current = false
-    }, 0)
-  }, [])
 
   // 상태 변경 시 URL 업데이트
   useEffect(() => {
