@@ -27,7 +27,7 @@ export const PostsManagerWidget = () => {
   useUrlSync()
 
   // Atoms
-  const [selectedTag, setSelectedTag] = useAtom(selectedTagAtom)
+  const setSelectedTag = useSetAtom(selectedTagAtom)
   const setSelectedPost = useSetAtom(selectedPostAtom)
   const selectedPost = useAtomValue(selectedPostAtom)
   const setSelectedUser = useSetAtom(selectedUserAtom)
