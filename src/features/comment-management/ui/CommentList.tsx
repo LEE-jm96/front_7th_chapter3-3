@@ -4,7 +4,7 @@ import { Button } from "../../../shared/ui"
 import { Comment, selectedCommentAtom } from "../../../entities/comment"
 import { highlightText } from "../../../shared/lib"
 import { searchQueryAtom } from "../../post-search"
-import { showAddCommentDialogAtom, showEditCommentDialogAtom, newCommentPostIdAtom } from "../../../widgets/posts-manager"
+import { showAddCommentDialogAtom, showEditCommentDialogAtom, newCommentPostIdAtom } from "../model/store"
 
 interface CommentListProps {
   postId: number

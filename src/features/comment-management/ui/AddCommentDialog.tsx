@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useAtomValue } from "jotai"
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Textarea } from "../../../shared/ui"
 import { CreateCommentDto } from "../../../entities/comment"
-import { newCommentPostIdAtom } from "../../../widgets/posts-manager"
+import { newCommentPostIdAtom } from "../model/store"
 
 interface AddCommentDialogProps {
   open: boolean

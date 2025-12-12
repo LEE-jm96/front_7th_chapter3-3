@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useAtom } from "jotai"
-import { skipAtom, limitAtom } from "../../../features/post-list"
-import { searchQueryAtom, selectedTagAtom, sortByAtom, orderAtom } from "../../../features/post-search"
-import { parsePostListParams, buildPostListUrl } from "../../../shared/lib"
+import { skipAtom, limitAtom } from "../../features/post-list"
+import { searchQueryAtom, selectedTagAtom, sortByAtom, orderAtom } from "../../features/post-search"
+import { parsePostListParams, buildPostListUrl } from "../../shared/lib"
 
 /**
  * URL 파라미터와 atoms를 동기화하는 hook
