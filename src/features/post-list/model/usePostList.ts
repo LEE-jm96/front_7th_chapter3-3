@@ -10,6 +10,7 @@ import { useUsersQuery } from "../../../entities/user"
 import { postsAtom, totalPostsAtom } from "../../../entities/post"
 import { skipAtom, limitAtom, loadingAtom } from "./store"
 import { sortByAtom, orderAtom, searchQueryAtom, selectedTagAtom } from "../../post-search"
+import { enrichPostsWithAuthors, sortPostsByReactions } from "../../../shared/lib"
 
 export const usePostList = () => {
   const skip = useAtomValue(skipAtom)
@@ -48,23 +49,15 @@ export const usePostList = () => {
   // 데이터 결합 및 atom 업데이트
   useEffect(() => {
     if (activeQuery.data && usersQuery.data) {
-      let postsWithUsers = activeQuery.data.posts.map((post) => ({
-        ...post,
-        author: usersQuery.data.users.find((user) => user.id === post.userId),
-      }))
+      // 순수함수를 사용하여 데이터 변환
+      let postsWithUsers = enrichPostsWithAuthors(
+        activeQuery.data.posts,
+        usersQuery.data.users
+      )
 
       // reactions 정렬은 클라이언트 사이드에서 처리 (API가 지원하지 않을 수 있음)
       if (sortBy === "reactions" && order) {
-        postsWithUsers = [...postsWithUsers].sort((a, b) => {
-          const aLikes = a.reactions?.likes || 0
-          const bLikes = b.reactions?.likes || 0
-          
-          if (order === "asc") {
-            return aLikes - bLikes
-          } else {
-            return bLikes - aLikes
-          }
-        })
+        postsWithUsers = sortPostsByReactions(postsWithUsers, order as "asc" | "desc")
       }
 
       setPosts(postsWithUsers)

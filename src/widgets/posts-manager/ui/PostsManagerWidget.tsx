@@ -22,6 +22,7 @@ import {
   showAddCommentDialogAtom,
   showEditCommentDialogAtom,
 } from "../model/store"
+import { parsePostListParams, buildPostListUrl } from "../../../shared/lib"
 
 export const PostsManagerWidget = () => {
   const navigate = useNavigate()
@@ -52,21 +53,16 @@ export const PostsManagerWidget = () => {
   useEffect(() => {
     if (isInitialized.current) return
     
-    const params = new URLSearchParams(location.search)
-    const urlSkip = parseInt(params.get("skip") || "0")
-    const urlLimit = parseInt(params.get("limit") || "10")
-    const urlSearch = params.get("search") || ""
-    const urlSortBy = params.get("sortBy") || "none"
-    const urlOrder = params.get("order") || "asc"
-    const urlTag = params.get("tag") || ""
+    // 순수함수를 사용하여 URL 파라미터 파싱
+    const urlParams = parsePostListParams(location.search)
     
     // atom 설정 (동기적으로 실행되지만 다음 렌더에서 반영됨)
-    setSkip(urlSkip)
-    setLimit(urlLimit)
-    setSearchQuery(urlSearch)
-    setSortBy(urlSortBy)
-    setOrder(urlOrder)
-    setSelectedTag(urlTag)
+    setSkip(urlParams.skip)
+    setLimit(urlParams.limit)
+    setSearchQuery(urlParams.search)
+    setSortBy(urlParams.sortBy)
+    setOrder(urlParams.order)
+    setSelectedTag(urlParams.tag)
     
     isInitialized.current = true
     
@@ -88,14 +84,16 @@ export const PostsManagerWidget = () => {
 
   // URL 업데이트
   const updateURL = () => {
-    const params = new URLSearchParams()
-    if (skip) params.set("skip", skip.toString())
-    if (limit) params.set("limit", limit.toString())
-    if (searchQuery) params.set("search", searchQuery)
-    if (sortBy && sortBy !== "none") params.set("sortBy", sortBy)
-    if (order) params.set("order", order)
-    if (selectedTag) params.set("tag", selectedTag)
-    navigate(`?${params.toString()}`)
+    // 순수함수를 사용하여 URL 생성
+    const queryString = buildPostListUrl({
+      skip,
+      limit,
+      search: searchQuery,
+      sortBy,
+      order,
+      tag: selectedTag,
+    })
+    navigate(`?${queryString}`)
   }
 
   // 게시물 상세 보기
@@ -132,13 +130,14 @@ export const PostsManagerWidget = () => {
   useEffect(() => {
     if (isInitialMount.current) return
 
-    const params = new URLSearchParams(location.search)
-    setSkip(parseInt(params.get("skip") || "0"))
-    setLimit(parseInt(params.get("limit") || "10"))
-    setSearchQuery(params.get("search") || "")
-    setSortBy(params.get("sortBy") || "none")
-    setOrder(params.get("order") || "asc")
-    setSelectedTag(params.get("tag") || "")
+    // 순수함수를 사용하여 URL 파라미터 파싱
+    const urlParams = parsePostListParams(location.search)
+    setSkip(urlParams.skip)
+    setLimit(urlParams.limit)
+    setSearchQuery(urlParams.search)
+    setSortBy(urlParams.sortBy)
+    setOrder(urlParams.order)
+    setSelectedTag(urlParams.tag)
   }, [location.search])
 
   return (
