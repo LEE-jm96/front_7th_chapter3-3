@@ -1,13 +1,11 @@
-import { useEffect, useRef } from "react"
 import { Plus } from "lucide-react"
-import { useLocation, useNavigate } from "react-router-dom"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../../../shared/ui"
 import { selectedPostAtom, Post } from "../../../entities/post"
 import { User, selectedUserAtom } from "../../../entities/user"
 import { useCommentsQuery } from "../../../entities/comment"
-import { PostTable, usePostList, skipAtom, limitAtom } from "../../../features/post-list"
-import { PostSearchControls, searchQueryAtom, selectedTagAtom, sortByAtom, orderAtom, useTags } from "../../../features/post-search"
+import { PostTable, usePostList } from "../../../features/post-list"
+import { PostSearchControls, selectedTagAtom, useTags } from "../../../features/post-search"
 import { AddPostDialog, useAddPost } from "../../../features/post-add"
 import { EditPostDialog, useEditPost } from "../../../features/post-edit"
 import { PostDetailDialog } from "../../../features/post-detail"
@@ -22,20 +20,13 @@ import {
   showAddCommentDialogAtom,
   showEditCommentDialogAtom,
 } from "../model/store"
-import { parsePostListParams, buildPostListUrl } from "../../../shared/lib"
+import { useUrlSync } from "../model/useUrlSync"
 
 export const PostsManagerWidget = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const isInitialMount = useRef(true)
-  const isInitialized = useRef(false)
+  // URL 동기화 (URL ↔ atoms)
+  useUrlSync()
 
   // Atoms
-  const [skip, setSkip] = useAtom(skipAtom)
-  const [limit, setLimit] = useAtom(limitAtom)
-  const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom)
-  const [sortBy, setSortBy] = useAtom(sortByAtom)
-  const [order, setOrder] = useAtom(orderAtom)
   const [selectedTag, setSelectedTag] = useAtom(selectedTagAtom)
   const setSelectedPost = useSetAtom(selectedPostAtom)
   const selectedPost = useAtomValue(selectedPostAtom)
@@ -49,52 +40,15 @@ export const PostsManagerWidget = () => {
   const [showAddCommentDialog, setShowAddCommentDialog] = useAtom(showAddCommentDialogAtom)
   const [showEditCommentDialog, setShowEditCommentDialog] = useAtom(showEditCommentDialogAtom)
 
-  // 초기 마운트 시 URL 파라미터를 먼저 읽어서 atom 설정
-  useEffect(() => {
-    if (isInitialized.current) return
-    
-    // 순수함수를 사용하여 URL 파라미터 파싱
-    const urlParams = parsePostListParams(location.search)
-    
-    // atom 설정 (동기적으로 실행되지만 다음 렌더에서 반영됨)
-    setSkip(urlParams.skip)
-    setLimit(urlParams.limit)
-    setSearchQuery(urlParams.search)
-    setSortBy(urlParams.sortBy)
-    setOrder(urlParams.order)
-    setSelectedTag(urlParams.tag)
-    
-    isInitialized.current = true
-    
-    // 다음 렌더 사이클에서 초기 마운트 완료로 표시
-    setTimeout(() => {
-      isInitialMount.current = false
-    }, 0)
-  }, [])
-
-  // TanStack Query hooks (atom이 초기화된 후에 호출)
+  // TanStack Query hooks
   useTags() // 태그 목록 자동 로드 및 atom 동기화
   const { error, deletePost } = usePostList()
   const { addPost } = useAddPost()
   const { updatePost } = useEditPost()
   const { addComment, updateComment, deleteComment, likeComment } = useComments()
-  
+
   // 댓글 쿼리 (게시물 상세 모달용)
   const { data: commentsData } = useCommentsQuery(selectedPost?.id)
-
-  // URL 업데이트
-  const updateURL = () => {
-    // 순수함수를 사용하여 URL 생성
-    const queryString = buildPostListUrl({
-      skip,
-      limit,
-      search: searchQuery,
-      sortBy,
-      order,
-      tag: selectedTag,
-    })
-    navigate(`?${queryString}`)
-  }
 
   // 게시물 상세 보기
   const openPostDetail = (post: Post) => {
@@ -118,27 +72,6 @@ export const PostsManagerWidget = () => {
     // searchQuery atom이 이미 업데이트되어 있으므로
     // usePostList에서 자동으로 처리됨
   }
-
-
-  // 상태 변경 시 URL 업데이트
-  useEffect(() => {
-    if (isInitialMount.current) return
-    updateURL()
-  }, [skip, limit, sortBy, order, selectedTag])
-
-  // URL 변경 감지 (뒤로가기/앞으로가기)
-  useEffect(() => {
-    if (isInitialMount.current) return
-
-    // 순수함수를 사용하여 URL 파라미터 파싱
-    const urlParams = parsePostListParams(location.search)
-    setSkip(urlParams.skip)
-    setLimit(urlParams.limit)
-    setSearchQuery(urlParams.search)
-    setSortBy(urlParams.sortBy)
-    setOrder(urlParams.order)
-    setSelectedTag(urlParams.tag)
-  }, [location.search])
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
